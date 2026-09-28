@@ -58,6 +58,16 @@ export function buildChart({ date, timeIndex, gender }) {
   }
 
   const find = (name) => palaces.find((p) => p.name === name);
+
+  // 陰陽：生年の天干（甲丙戊庚壬＝陽、乙丁己辛癸＝陰）と性別の組み合わせ
+  const yearStem = (a.chineseDate || '').charAt(0);
+  const yang = '甲丙戊庚壬'.includes(yearStem);
+  const yinYangLabel = `${yang ? '陽' : '陰'}${gender === '男' ? '男' : '女'}`;
+  // 陽男・陰女は大限が順行、陰男・陽女は逆行
+  const forward = (yang && gender === '男') || (!yang && gender !== '男');
+  // 命宮の地支の陰陽と生年の陰陽が一致すれば「陰陽順理」、異なれば「陰陽反背」
+  const soulBranch = find('命宮')?.branch || '';
+  const soulYang = '子寅辰午申戌'.includes(soulBranch);
   const element = (a.fiveElementsClass || '').charAt(0); // 例: 「土の五局」→「土」
 
   const chart = {
@@ -73,6 +83,7 @@ export function buildChart({ date, timeIndex, gender }) {
     soulStar: a.soul,
     bodyStar: a.body,
     birthYear: Number(String(date).slice(0, 4)),
+    yinYang: { label: yinYangLabel, yang, forward, harmony: soulYang === yang },
     palaces,
     body: palaces.find((p) => p.isBody) || find('命宮'),
     soul: find('命宮'),
