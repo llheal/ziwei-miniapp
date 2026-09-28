@@ -3,9 +3,9 @@
 import { build } from 'vite';
 
 const TARGETS = [
-  { name: 'published', outDir: 'dist', liffId: '2011775290-FdfRXbUa' },
-  { name: 'review', outDir: 'dist/review', liffId: '2011775289-B6HwD6QH' },
-  { name: 'dev', outDir: 'dist/dev', liffId: '2011775288-2kkIglju' },
+  { name: 'published', outDir: 'dist', liffId: '2011766751-1WgmGHs0' },
+  { name: 'review', outDir: 'dist/review', liffId: '2011766750-G2SItdGj' },
+  { name: 'dev', outDir: 'dist/dev', liffId: '2011766749-X2xkxkP4' },
 ];
 
 for (const t of TARGETS) {
