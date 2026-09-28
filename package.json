@@ -1,0 +1,19 @@
+{
+  "name": "ziwei-miniapp",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview",
+    "build:all": "node scripts/build-all.mjs"
+  },
+  "dependencies": {
+    "@line/liff": "^2.31.0",
+    "iztro": "^2.6.1"
+  },
+  "devDependencies": {
+    "vite": "^8.3.1"
+  }
+}
