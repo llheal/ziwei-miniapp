@@ -157,7 +157,49 @@ export function freeSummary(chart) {
   };
 }
 
-/** 有料の詳細レポート（命宮・夫妻・官祿・財帛） */
+// 十二宮それぞれが表すテーマ
+export const PALACE_THEMES = {
+  命宮: '性格・生き方の土台',
+  兄弟: '兄弟姉妹・身近な仲間との関係',
+  夫妻: '恋愛・結婚・パートナー',
+  子女: '子ども・後輩・遊び心や創作',
+  財帛: '収入・お金の稼ぎ方と使い方',
+  疾厄: '心身のコンディションとの付き合い方',
+  遷移: '外出・移動・外の世界での評価',
+  僕役: '友人・部下・人脈',
+  官祿: '仕事・キャリア・社会での役割',
+  田宅: '住まい・家庭・安心できる場所',
+  福德: '心の満足・趣味・楽しみ方',
+  父母: '親・目上の人・学び',
+};
+
+const firstKeywords = (name) => (STARS[name]?.keywords || '').split('・').slice(0, 2).join('・');
+
+/** 十二宮のかんたん解説 */
+export function palaceOverview(chart) {
+  const order = Object.keys(PALACE_THEMES);
+  const sorted = [...chart.palaces].sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
+  return sorted.map((p) => {
+    const stars = p.majorStars.map((s) => s.name);
+    const keys = stars.map(firstKeywords).filter(Boolean);
+    const text = keys.length
+      ? `このテーマでは「${keys.join('」「')}」の力が表れやすいでしょう。`
+      : 'このテーマは環境や出会いによって柔軟に形を変えます。';
+    const mutagens = [...p.majorStars, ...p.minorStars]
+      .filter((s) => s.mutagen && MUTAGEN[s.mutagen])
+      .map((s) => `${s.name}化${s.mutagen}：${MUTAGEN[s.mutagen]}`);
+    return {
+      name: p.name === '命宮' ? '命宮' : `${p.name}宮`,
+      theme: PALACE_THEMES[p.name] || '',
+      stars,
+      borrowed: p.borrowed,
+      text,
+      mutagens,
+    };
+  });
+}
+
+/** 詳細レポート（命宮・夫妻・官祿・財帛） */
 export function fullReport(chart) {
   const sections = [];
   for (const [palaceName, topic] of Object.entries(PALACE_TOPICS)) {

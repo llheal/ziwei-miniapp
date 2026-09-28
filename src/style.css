@@ -118,6 +118,14 @@ input[type='date'], input[type='text'], select {
 .report-section h3 { font-size: 16px; margin: 0 0 8px; }
 .report-section h3 small { display: block; font-size: 12px; color: var(--muted); font-weight: 400; }
 .mutagens { font-size: 13px; color: var(--gold); padding-left: 18px; }
+.palace-list { margin: 0; }
+.palace-item { padding: 10px 0; border-top: 1px dashed var(--line); }
+.palace-item:first-child { border-top: 0; }
+.palace-item dt { font-weight: 700; font-size: 14px; }
+.palace-item dt small { margin-left: 8px; font-size: 12px; color: var(--muted); font-weight: 400; }
+.palace-item dd { margin: 4px 0 0; font-size: 14px; }
+.palace-stars { display: block; font-weight: 700; color: var(--accent); }
+.palace-item .mutagens { margin: 4px 0 0; }
 
 .compat-result { margin-top: 16px; text-align: center; border-top: 1px solid var(--line); padding-top: 16px; }
 .compat-names { font-weight: 700; margin: 0; }

@@ -1,6 +1,6 @@
 import './style.css';
 import { buildChart, TIME_OPTIONS, UNKNOWN_TIME_INDEX } from './chart.js';
-import { freeSummary, fullReport } from './readings.js';
+import { freeSummary, fullReport, palaceOverview } from './readings.js';
 import { compatibility } from './compat.js';
 import { initLine, shareCompat, purchaseReport, fetchPrice } from './line.js';
 
@@ -96,7 +96,20 @@ function renderReport(chart) {
       <h3>${sec.title}<small>${sec.palace}${sec.borrowed ? '（対宮の星を借りて読みます）' : ''}</small></h3>
       <p>${sec.body.replace(/\n/g, '<br />')}</p>
       ${sec.mutagens.length ? `<ul class="mutagens">${sec.mutagens.map((m) => `<li>${m}</li>`).join('')}</ul>` : ''}
-    </section>`).join('');
+    </section>`).join('') + `
+    <section class="report-section">
+      <h3>十二宮かんたん解説<small>人生の12のテーマごとに、あなたの星の傾向を読み解きます</small></h3>
+      <dl class="palace-list">${palaceOverview(chart).map((p) => `
+        <div class="palace-item">
+          <dt>${p.name}<small>${p.theme}</small></dt>
+          <dd>
+            <span class="palace-stars">${p.stars.join('・') || '主星なし'}${p.borrowed ? '（対宮の星）' : ''}</span>
+            ${p.text}
+            ${p.mutagens.length ? `<ul class="mutagens">${p.mutagens.map((m) => `<li>${m}</li>`).join('')}</ul>` : ''}
+          </dd>
+        </div>`).join('')}
+      </dl>
+    </section>`;
   $('premium-card').hidden = true;
   $('report-card').hidden = false;
 }
@@ -107,7 +120,8 @@ function showResult(input) {
   renderChart(currentChart);
   renderSummary(currentChart);
   const unlocked = store.get('unlocked') || [];
-  if (unlocked.includes(chartKey(input))) {
+  // 課金機能を公開するまでは詳細レポートも無料で表示する
+  if (!IAP_ENABLED || unlocked.includes(chartKey(input))) {
     renderReport(currentChart);
   } else {
     $('premium-card').hidden = !IAP_ENABLED;
