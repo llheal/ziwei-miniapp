@@ -137,3 +137,88 @@ input[type='date'], input[type='text'], select {
 
 footer { max-width: 560px; margin: 0 auto; padding: 8px 20px 40px; font-size: 12px; color: var(--muted); }
 footer a { color: var(--accent); }
+
+/* タブ */
+.tabs { position: sticky; top: 0; z-index: 5; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 6px; margin: 0 0 14px; background: rgba(246, 243, 255, 0.95); backdrop-filter: blur(6px); border-radius: 14px; }
+.tabs button { border: 0; background: transparent; padding: 9px 2px; border-radius: 10px; font: inherit; font-size: 13px; font-weight: 700; color: var(--muted); cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--card); color: var(--accent); box-shadow: 0 2px 8px rgba(91, 63, 209, 0.15); }
+.card .btn-secondary[data-goto] { width: 100%; margin-top: 12px; }
+.center { text-align: center; }
+
+/* 人生の総合鑑定・格局 */
+.life-card { background: linear-gradient(160deg, #2f1f73, #5b3fd1); color: #fff; }
+.life-card .label { color: #f3d48a; }
+.life-card h2 { color: #fff; font-size: 24px; margin: 4px 0 10px; }
+.life-card .life-text p { font-size: 14px; line-height: 1.8; color: #f1edff; }
+.life-card .btn-secondary { background: rgba(255, 255, 255, 0.15); color: #fff; }
+.pattern-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.chip { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: #f3d48a; color: #3a2585; }
+.life-card .curve { background: rgba(255, 255, 255, 0.95); border-radius: 12px; }
+.curve-caption { margin: 4px 0 0; font-size: 11px; text-align: center; opacity: 0.8; }
+.pattern-item { border-top: 1px dashed var(--line); padding: 10px 0; }
+.pattern-item:first-child { border-top: 0; padding-top: 0; }
+.pattern-item h3 { margin: 0 0 4px; font-size: 16px; color: var(--accent); }
+.pattern-item p { margin: 0; font-size: 14px; }
+
+/* 運勢グラフ */
+.curve { display: block; width: 100%; height: auto; margin: 6px 0; }
+.cv-grid { stroke: var(--line); stroke-width: 1; stroke-dasharray: 3 3; }
+.cv-axis { font-size: 10px; fill: var(--muted); }
+.cv-line { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; }
+.cv-dot { fill: #fff; stroke: var(--accent); stroke-width: 2; }
+.cv-peak { fill: var(--gold); stroke: #fff; stroke-width: 1.5; }
+.cv-peak-label { font-size: 11px; fill: var(--gold); }
+.cv-now { fill: #e0457b; stroke: #fff; stroke-width: 2; }
+.cv-now-label { font-size: 11px; font-weight: 700; fill: #e0457b; }
+
+/* 今年の運勢 */
+.score-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 46px; height: 46px; margin-right: 10px; border-radius: 50%; font-size: 18px; font-weight: 700; color: #fff; background: var(--accent); vertical-align: middle; }
+.score-badge.small { min-width: 30px; height: 30px; font-size: 12px; margin: 0 0 0 6px; }
+.score-badge.top { background: linear-gradient(135deg, #d9a93a, #b8892b); }
+.score-badge.up { background: var(--accent); }
+.score-badge.mid { background: #7f74b3; }
+.score-badge.low { background: #9aa3b8; }
+.advice { background: var(--accent-soft); border-radius: 10px; padding: 10px 12px; font-weight: 500; }
+.card h3 { font-size: 15px; margin: 14px 0 6px; }
+.mutagen-year { list-style: none; padding: 0; margin: 0; font-size: 14px; }
+.mutagen-year li { padding: 5px 0; }
+.mk { display: inline-block; min-width: 38px; margin-right: 6px; padding: 1px 6px; border-radius: 6px; font-size: 12px; font-weight: 700; text-align: center; color: #fff; }
+.mk-祿 { background: #2e9e6a; } .mk-權 { background: #d07a2a; } .mk-科 { background: #3a7bd5; } .mk-忌 { background: #8a8aa0; }
+
+/* 年・大限の一覧 */
+.fortune-row { display: grid; grid-template-columns: 58px 1fr 52px; grid-template-areas: "when bar label" "when text text"; gap: 2px 8px; align-items: center; padding: 8px 0; border-top: 1px dashed var(--line); font-size: 13px; }
+.fr-when { grid-area: when; font-weight: 700; line-height: 1.2; }
+.fr-when small { display: block; font-weight: 400; color: var(--muted); font-size: 11px; }
+.fr-bar { grid-area: bar; height: 8px; background: var(--accent-soft); border-radius: 4px; overflow: hidden; }
+.fr-bar i { display: block; height: 100%; border-radius: 4px; background: var(--accent); }
+.fr-bar i.top { background: var(--gold); } .fr-bar i.low { background: #9aa3b8; } .fr-bar i.mid { background: #7f74b3; }
+.fr-label { grid-area: label; font-size: 12px; font-weight: 700; text-align: right; color: var(--accent); }
+.fr-label.top { color: var(--gold); } .fr-label.low { color: #7a8196; } .fr-label.mid { color: #6a5fa0; }
+.fr-text { grid-area: text; color: var(--muted); font-size: 12px; }
+.decade-row { border-top: 1px dashed var(--line); padding: 10px 0; }
+.decade-row.is-now { background: #fff8e8; margin: 0 -10px; padding: 10px; border-radius: 10px; border-top-color: transparent; }
+.dr-head { display: flex; align-items: center; gap: 8px; }
+.dr-head em { font-style: normal; font-size: 11px; font-weight: 700; color: #fff; background: #e0457b; border-radius: 6px; padding: 1px 6px; }
+.dr-head .fr-label { margin-left: auto; }
+.decade-row p { margin: 4px 0 0; font-size: 13px; }
+.dr-palace { display: block; font-weight: 700; color: var(--accent); }
+
+/* 詳細レポート */
+.profile-list { margin: 0; }
+.profile-list div { padding: 6px 0; border-top: 1px dashed var(--line); font-size: 14px; }
+.profile-list div:first-child { border-top: 0; }
+.profile-list dt { font-size: 12px; color: var(--muted); }
+.profile-list dd { margin: 2px 0 0; }
+.palace-detail { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin: 8px 0; }
+.palace-detail[open] { background: #fcfbff; }
+.palace-detail summary { cursor: pointer; list-style: none; display: grid; grid-template-columns: auto 1fr; gap: 0 8px; }
+.palace-detail summary::-webkit-details-marker { display: none; }
+.pd-name { font-weight: 700; font-size: 15px; }
+.pd-name em { font-style: normal; font-size: 10px; margin-left: 4px; padding: 1px 5px; border-radius: 5px; background: #f3d48a; color: #3a2585; vertical-align: middle; }
+.pd-theme { font-size: 12px; color: var(--muted); align-self: center; }
+.pd-stars { grid-column: 1 / -1; font-size: 13px; font-weight: 700; color: var(--accent); }
+.pd-stars small { font-size: 10px; color: var(--gold); margin-left: 1px; font-weight: 400; }
+.palace-detail p { font-size: 14px; margin: 8px 0 0; }
+.bright-notes, .support-list { font-size: 13px; padding-left: 18px; margin: 8px 0 0; color: #4b4468; }
+.support-list span { font-weight: 700; margin-right: 4px; }
+.support-list span.good { color: #2e9e6a; } .support-list span.tough { color: #b0643a; }

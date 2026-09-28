@@ -43,6 +43,23 @@
       </section>
 
       <section id="result" hidden>
+        <nav class="tabs" id="tabs" role="tablist">
+          <button type="button" role="tab" data-tab="chart" aria-selected="true">命盤・総合</button>
+          <button type="button" role="tab" data-tab="report" aria-selected="false">性格・12宮</button>
+          <button type="button" role="tab" data-tab="fortune" aria-selected="false">運勢</button>
+          <button type="button" role="tab" data-tab="compat" aria-selected="false">相性</button>
+        </nav>
+
+        <div class="tab-panel" data-panel="chart">
+        <div class="card life-card">
+          <p class="label">人生の総合鑑定</p>
+          <h2 id="life-title"></h2>
+          <div class="pattern-chips" id="life-patterns"></div>
+          <div id="life-curve-mini"></div>
+          <div class="life-text" id="life-text"></div>
+          <button type="button" class="btn-secondary" data-goto="fortune">運勢の流れをくわしく見る</button>
+        </div>
+
         <div class="card">
           <h2>あなたの命盤</h2>
           <div class="basic-info" id="basic-info"></div>
@@ -55,8 +72,16 @@
           <h2 id="summary-stars"></h2>
           <p class="keywords" id="summary-keywords"></p>
           <p class="summary-text" id="summary-text"></p>
+          <button type="button" class="btn-secondary" data-goto="report">性格と12宮の詳しい解説を見る</button>
         </div>
 
+        <div class="card">
+          <h2>格局の解説</h2>
+          <div id="pattern-list"></div>
+        </div>
+        </div>
+
+        <div class="tab-panel" data-panel="report" hidden>
         <div class="card" id="premium-card">
           <h2>詳細レポート</h2>
           <p>命宮・夫妻宮・官祿宮・財帛宮をくわしく読み解きます。</p>
@@ -75,7 +100,30 @@
           <h2>詳細レポート</h2>
           <div id="report-body"></div>
         </div>
+        </div>
 
+        <div class="tab-panel" data-panel="fortune" hidden>
+        <div class="card">
+          <p class="label" id="year-now-label"></p>
+          <h2 id="year-now-title"></h2>
+          <div id="year-now"></div>
+        </div>
+        <div class="card">
+          <h2>これから12年の運勢グラフ</h2>
+          <p class="hint">★は期間中もっとも運気が高まる年です。</p>
+          <div id="year-curve"></div>
+          <div class="fortune-list" id="year-list"></div>
+        </div>
+        <div class="card">
+          <h2>人生の運勢曲線（大限）</h2>
+          <p class="hint">紫微斗数では、人生を10年ごとの「大限」に分けて運気の流れを読みます。年齢は数え年、★は人生の飛躍期です。</p>
+          <div id="life-curve"></div>
+          <div class="fortune-list" id="decade-list"></div>
+        </div>
+        <p class="small center">運勢のスコアは命盤の星の配置から算出した目安です。エンターテインメントとしてお楽しみください。</p>
+        </div>
+
+        <div class="tab-panel" data-panel="compat" hidden>
         <div class="card">
           <h2>気になる人との相性を占う</h2>
           <p>相手の生年月日を入れると、二人の星の相性がわかります。</p>
@@ -101,6 +149,7 @@
             <button class="btn-primary" id="share-btn">この結果を相手に送る</button>
             <p class="small" id="share-note"></p>
           </div>
+        </div>
         </div>
 
         <button class="btn-link" id="restart-btn">別の生年月日で占う</button>

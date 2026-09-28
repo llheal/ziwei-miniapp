@@ -1,5 +1,6 @@
 // 紫微斗数・十四主星の解説（エンターテインメント目的の一般的な解釈）
 // 方針：不安をあおらず、強みと前向きなアドバイスを伝える。
+import { PALACE_TEXTS, PALACE_TEXTS_FALLBACK, MINOR_STARS, BRIGHTNESS } from './star-texts.js';
 
 export const STARS = {
   紫微: {
@@ -140,8 +141,7 @@ const FALLBACK = {
 };
 
 export function starText(name, field) {
-  const s = STARS[name];
-  return (s && s[field]) || FALLBACK[field];
+  return STARS[name]?.[field] || PALACE_TEXTS[name]?.[field] || FALLBACK[field] || PALACE_TEXTS_FALLBACK[field] || '';
 }
 
 /** 無料で表示する性格の要約 */
@@ -173,27 +173,39 @@ export const PALACE_THEMES = {
   父母: '親・目上の人・学び',
 };
 
-const firstKeywords = (name) => (STARS[name]?.keywords || '').split('・').slice(0, 2).join('・');
+// 各宮で使う解説フィールド
+const PALACE_FIELDS = {
+  命宮: 'detail', 兄弟: 'sibling', 夫妻: 'love', 子女: 'children', 財帛: 'money', 疾厄: 'health',
+  遷移: 'travel', 僕役: 'friends', 官祿: 'work', 田宅: 'home', 福德: 'mind', 父母: 'parents',
+};
 
-/** 十二宮のかんたん解説 */
-export function palaceOverview(chart) {
+/** 十二宮の詳細解説（伝統的な順序：命宮→兄弟→…→父母） */
+export function palaceDetails(chart) {
   const order = Object.keys(PALACE_THEMES);
   const sorted = [...chart.palaces].sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
   return sorted.map((p) => {
-    const stars = p.majorStars.map((s) => s.name);
-    const keys = stars.map(firstKeywords).filter(Boolean);
-    const text = keys.length
-      ? `このテーマでは「${keys.join('」「')}」の力が表れやすいでしょう。`
-      : 'このテーマは環境や出会いによって柔軟に形を変えます。';
+    const field = PALACE_FIELDS[p.name];
+    const stars = p.majorStars.map((s) => ({ name: s.name, brightness: p.borrowed ? '' : s.brightness }));
+    const paragraphs = stars.length
+      ? stars.map((s) => ({ star: s.name, text: starText(s.name, field) }))
+      : [{ star: '', text: FALLBACK[field] || PALACE_TEXTS_FALLBACK[field] }];
+    const brightNotes = [...new Set(stars.filter((s) => BRIGHTNESS[s.brightness]).map((s) => `${s.name}（${s.brightness}）：${BRIGHTNESS[s.brightness]}`))];
+    const supports = p.minorStars
+      .filter((s) => MINOR_STARS[s.name])
+      .map((s) => ({ name: s.name, good: MINOR_STARS[s.name].good, text: MINOR_STARS[s.name].text }));
     const mutagens = [...p.majorStars, ...p.minorStars]
       .filter((s) => s.mutagen && MUTAGEN[s.mutagen])
       .map((s) => `${s.name}化${s.mutagen}：${MUTAGEN[s.mutagen]}`);
     return {
+      key: p.name,
       name: p.name === '命宮' ? '命宮' : `${p.name}宮`,
       theme: PALACE_THEMES[p.name] || '',
-      stars,
+      isBody: p.isBody,
       borrowed: p.borrowed,
-      text,
+      stars,
+      paragraphs,
+      brightNotes,
+      supports,
       mutagens,
     };
   });

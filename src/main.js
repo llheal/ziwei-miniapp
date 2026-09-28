@@ -1,6 +1,10 @@
 import './style.css';
 import { buildChart, TIME_OPTIONS, UNKNOWN_TIME_INDEX } from './chart.js';
-import { freeSummary, fullReport, palaceOverview } from './readings.js';
+import { freeSummary, fullReport, palaceDetails } from './readings.js';
+import { ELEMENT_CLASS } from './star-texts.js';
+import { lifeOverview } from './patterns.js';
+import { decadalFortunes, yearlyFortunes } from './fortune.js';
+import { lineChart } from './curve.js';
 import { compatibility } from './compat.js';
 import { initLine, shareCompat, purchaseReport, fetchPrice } from './line.js';
 
@@ -89,29 +93,93 @@ function renderSummary(chart) {
     .join('');
 }
 
+const OPEN_PALACES = ['命宮', '夫妻', '官祿', '財帛'];
+const list = (items, cls) => (items.length ? `<ul class="${cls}">${items.map((m) => `<li>${m}</li>`).join('')}</ul>` : '');
+
 function renderReport(chart) {
-  const sections = fullReport(chart);
-  $('report-body').innerHTML = sections.map((sec) => `
+  const body = chart.body.name === '命宮' ? '命宮（命身同宮）' : `${chart.body.name}宮`;
+  const profile = `
     <section class="report-section">
-      <h3>${sec.title}<small>${sec.palace}${sec.borrowed ? '（対宮の星を借りて読みます）' : ''}</small></h3>
-      <p>${sec.body.replace(/\n/g, '<br />')}</p>
-      ${sec.mutagens.length ? `<ul class="mutagens">${sec.mutagens.map((m) => `<li>${m}</li>`).join('')}</ul>` : ''}
-    </section>`).join('') + `
-    <section class="report-section">
-      <h3>十二宮かんたん解説<small>人生の12のテーマごとに、あなたの星の傾向を読み解きます</small></h3>
-      <dl class="palace-list">${palaceOverview(chart).map((p) => `
-        <div class="palace-item">
-          <dt>${p.name}<small>${p.theme}</small></dt>
-          <dd>
-            <span class="palace-stars">${p.stars.join('・') || '主星なし'}${p.borrowed ? '（対宮の星）' : ''}</span>
-            ${p.text}
-            ${p.mutagens.length ? `<ul class="mutagens">${p.mutagens.map((m) => `<li>${m}</li>`).join('')}</ul>` : ''}
-          </dd>
-        </div>`).join('')}
+      <h3>基本プロフィール</h3>
+      <dl class="profile-list">
+        <div><dt>五行局</dt><dd><strong>${chart.fiveElementsClass}</strong>　${ELEMENT_CLASS[chart.element] || ''}</dd></div>
+        <div><dt>身宮</dt><dd><strong>${body}</strong>　人生の後半にかけて重みを増すテーマを表します。</dd></div>
+        <div><dt>命主 / 身主</dt><dd><strong>${chart.soulStar} / ${chart.bodyStar}</strong>　生まれ持った運命の守り星と、人生を通じて育てていく星です。</dd></div>
       </dl>
+    </section>`;
+  const palaces = palaceDetails(chart).map((p) => `
+    <details class="palace-detail" ${OPEN_PALACES.includes(p.key) ? 'open' : ''}>
+      <summary>
+        <span class="pd-name">${p.name}${p.isBody ? '<em>身宮</em>' : ''}</span>
+        <span class="pd-theme">${p.theme}</span>
+        <span class="pd-stars">${p.stars.map((s) => `${s.name}${s.brightness ? `<small>${s.brightness}</small>` : ''}`).join('・') || '主星なし'}${p.borrowed ? '<small>（対宮の星を借りて読みます）</small>' : ''}</span>
+      </summary>
+      ${p.paragraphs.map((x) => `<p>${x.star ? `<strong>【${x.star}】</strong>` : ''}${x.text}</p>`).join('')}
+      ${list(p.brightNotes, 'bright-notes')}
+      ${list(p.supports.map((s) => `<span class="${s.good ? 'good' : 'tough'}">${s.name}</span>${s.text}`), 'support-list')}
+      ${list(p.mutagens, 'mutagens')}
+    </details>`).join('');
+  $('report-body').innerHTML = `${profile}
+    <section class="report-section">
+      <h3>十二宮の詳細解説<small>タップすると各宮の解説を開閉できます</small></h3>
+      ${palaces}
     </section>`;
   $('premium-card').hidden = true;
   $('report-card').hidden = false;
+}
+
+function renderLife(chart) {
+  const life = lifeOverview(chart);
+  $('life-title').textContent = life.title;
+  $('life-patterns').innerHTML = life.patterns.map((p) => `<span class="chip">${p.name}</span>`).join('');
+  $('life-text').innerHTML = life.paragraphs.map((t) => `<p>${t}</p>`).join('');
+  $('pattern-list').innerHTML = life.patterns.map((p) => `<div class="pattern-item"><h3>${p.name}</h3><p>${p.text}</p></div>`).join('');
+  const age = new Date().getFullYear() - chart.birthYear + 1;
+  const points = life.decades.map((d) => ({ label: `${d.start}`, score: d.score }));
+  const current = life.decades.findIndex((d) => age >= d.start && age <= d.end);
+  const peak = life.decades.indexOf(life.peak);
+  $('life-curve-mini').innerHTML = lineChart(points, { current, peak, id: 'mini' }) + '<p class="curve-caption">人生の運勢曲線（横軸は各大限の開始年齢・★は人生の飛躍期）</p>';
+}
+
+function renderFortune(chart) {
+  const thisYear = new Date().getFullYear();
+  const years = yearlyFortunes(chart, thisYear, 12);
+  const now = years[0];
+  $('year-now-label').textContent = `${now.year}年（${now.stem}${now.branch}年）の運勢・数え年${now.age}歳`;
+  $('year-now-title').innerHTML = `<span class="score-badge ${now.tone}">${now.score}</span>${now.label}`;
+  $('year-now').innerHTML = `
+    <p>${now.note}</p>
+    <p>今年は<strong>${now.palace}</strong>が流年の命宮にあたり、「${now.theme}」が一年の主役になります。${now.stars.length ? `この宮の星は${now.stars.join('・')}。` : ''}</p>
+    <p class="advice">${now.advice}</p>
+    <h3>今年の四化（運気の流れ）</h3>
+    <ul class="mutagen-year">${now.mutagens.map((m) => `<li><span class="mk mk-${m.kind}">化${m.kind}</span><strong>${m.palace}</strong>（${m.theme}）：${m.text}</li>`).join('')}</ul>
+    ${now.decade ? `<p class="small">現在の大限：${now.decade.start}〜${now.decade.end}歳（${now.decade.palace}・${now.decade.label}）</p>` : ''}`;
+  $('year-curve').innerHTML = lineChart(years.map((y) => ({ label: `'${String(y.year).slice(2)}`, score: y.score })), { current: 0, id: 'year' });
+  $('year-list').innerHTML = years.map((y) => `
+    <div class="fortune-row">
+      <span class="fr-when">${y.year}年<small>${y.age}歳</small></span>
+      <span class="fr-bar"><i class="${y.tone}" style="width:${y.score}%"></i></span>
+      <span class="fr-label ${y.tone}">${y.label}</span>
+      <span class="fr-text">${y.palace}：${y.theme}</span>
+    </div>`).join('');
+
+  const decades = decadalFortunes(chart).filter((d) => d.start <= 95);
+  const age = thisYear - chart.birthYear + 1;
+  const current = decades.findIndex((d) => age >= d.start && age <= d.end);
+  const lifePeak = lifeOverview(chart).peak;
+  const peak = decades.findIndex((d) => d.start === lifePeak.start);
+  $('life-curve').innerHTML = lineChart(decades.map((d) => ({ label: `${d.start}`, score: d.score })), { current, peak, id: 'life' });
+  $('decade-list').innerHTML = decades.map((d, i) => `
+    <div class="decade-row ${i === current ? 'is-now' : ''}">
+      <div class="dr-head"><strong>${d.start}〜${d.end}歳</strong>${i === current ? '<em>現在</em>' : ''}<span class="fr-label ${d.tone}">${d.label}</span><span class="score-badge small ${d.tone}">${d.score}</span></div>
+      <p><span class="dr-palace">${d.palace}${d.stars.length ? `（${d.stars.join('・')}）` : ''}</span>${d.text}</p>
+    </div>`).join('');
+}
+
+function selectTab(name) {
+  document.querySelectorAll('#tabs [data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
+  document.querySelectorAll('.tab-panel').forEach((p) => { p.hidden = p.dataset.panel !== name; });
+  $('tabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function showResult(input) {
@@ -119,6 +187,10 @@ function showResult(input) {
   currentChart = buildChart(input);
   renderChart(currentChart);
   renderSummary(currentChart);
+  renderLife(currentChart);
+  renderFortune(currentChart);
+  document.querySelectorAll('#tabs [data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === 'chart')));
+  document.querySelectorAll('.tab-panel').forEach((p) => { p.hidden = p.dataset.panel !== 'chart'; });
   const unlocked = store.get('unlocked') || [];
   // 課金機能を公開するまでは詳細レポートも無料で表示する
   if (!IAP_ENABLED || unlocked.includes(chartKey(input))) {
@@ -202,6 +274,11 @@ async function main() {
     showResult(input);
   });
   $('buy-btn').addEventListener('click', onBuy);
+  $('tabs').addEventListener('click', (e) => {
+    const tab = e.target.closest('[data-tab]');
+    if (tab) selectTab(tab.dataset.tab);
+  });
+  document.querySelectorAll('[data-goto]').forEach((b) => b.addEventListener('click', () => selectTab(b.dataset.goto)));
   $('compat-form').addEventListener('submit', onCompat);
   $('share-btn').addEventListener('click', onShare);
   $('restart-btn').addEventListener('click', () => {

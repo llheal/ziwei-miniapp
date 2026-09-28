@@ -1,13 +1,13 @@
 // 相性診断（エンターテインメント）。命宮の主星タイプと五行局の関係から算出する。
 
-const TYPES = {
+export const TYPES = {
   leader: { label: 'リーダー型', stars: ['紫微', '天府', '太陽', '武曲'] },
   action: { label: '行動・変革型', stars: ['七殺', '破軍', '貪狼', '廉貞'] },
   thinker: { label: '知性・調整型', stars: ['天機', '巨門', '天相', '天梁'] },
   heart: { label: '感性・癒し型', stars: ['天同', '太陰'] },
 };
 
-function typeOf(chart) {
+export function typeOf(chart) {
   const main = chart.soul.majorStars[0]?.name;
   for (const [key, t] of Object.entries(TYPES)) {
     if (t.stars.includes(main)) return key;

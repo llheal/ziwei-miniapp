@@ -23,13 +23,17 @@ export const UNKNOWN_TIME_INDEX = 6;
 const PALACE_ORDER = ['命宮', '兄弟', '夫妻', '子女', '財帛', '疾厄', '遷移', '僕役', '官祿', '田宅', '福德', '父母'];
 
 function simplifyPalace(p) {
+  const majorStars = p.majorStars.map((s) => ({ name: s.name, brightness: s.brightness || '', mutagen: s.mutagen || '' }));
   return {
     index: p.index,
     name: p.name,
     stem: p.heavenlyStem,
     branch: p.earthlyBranch,
-    majorStars: p.majorStars.map((s) => ({ name: s.name, brightness: s.brightness || '', mutagen: s.mutagen || '' })),
-    minorStars: p.minorStars.map((s) => ({ name: s.name, mutagen: s.mutagen || '' })),
+    majorStars,
+    ownMajorStars: majorStars, // 借星する前の本来の主星（格局・運勢の判定用）
+    minorStars: p.minorStars.map((s) => ({ name: s.name, brightness: s.brightness || '', mutagen: s.mutagen || '' })),
+    isBody: Boolean(p.isBodyPalace),
+    decadal: { range: p.decadal?.range || [0, 0], stem: p.decadal?.heavenlyStem || '' },
     borrowed: false,
   };
 }
@@ -68,7 +72,9 @@ export function buildChart({ date, timeIndex, gender }) {
     element,
     soulStar: a.soul,
     bodyStar: a.body,
+    birthYear: Number(String(date).slice(0, 4)),
     palaces,
+    body: palaces.find((p) => p.isBody) || find('命宮'),
     soul: find('命宮'),
     spouse: find('夫妻'),
     career: find('官祿'),
