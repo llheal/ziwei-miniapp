@@ -60,7 +60,7 @@ export function buildChart({ date, timeIndex, gender }) {
   const find = (name) => palaces.find((p) => p.name === name);
   const element = (a.fiveElementsClass || '').charAt(0); // 例: 「土の五局」→「土」
 
-  return {
+  const chart = {
     solarDate: a.solarDate,
     lunarDate: a.lunarDate,
     chineseDate: a.chineseDate,
@@ -81,4 +81,7 @@ export function buildChart({ date, timeIndex, gender }) {
     wealth: find('財帛'),
     order: PALACE_ORDER,
   };
+  // 流月・流日の算出に iztro の命盤オブジェクトを使う（列挙しないので保存・比較の対象外）
+  Object.defineProperty(chart, 'astrolabe', { value: a, enumerable: false });
+  return chart;
 }

@@ -27,10 +27,24 @@ export function permanentLink() {
   return `https://miniapp.line.me/${LIFF_ID}`;
 }
 
-/** 相性結果を友だちにシェアする。LINE外ではWeb Share APIかクリップボードにフォールバック。 */
-export async function shareCompat({ nameA, nameB, score, typeA, typeB }) {
+/** 自分の鑑定結果（人生タイプ・格局・命宮の星）を友だちにシェアする */
+export function shareResult({ title, patterns, stars }) {
+  return shareCompat({
+    altText: `私の紫微斗数タイプは「${title}」でした`,
+    contents: [
+      { type: 'text', text: '紫微斗数 命盤診断', size: 'sm', color: '#8a7cc2', weight: 'bold' },
+      { type: 'text', text: '私の人生タイプは…', size: 'sm', color: '#666666' },
+      { type: 'text', text: title, size: 'xl', weight: 'bold', color: '#5b3fd1', wrap: true },
+      { type: 'text', text: `命宮の星：${stars || '柔軟タイプ'}`, size: 'sm', wrap: true },
+      { type: 'text', text: patterns.map((p) => `#${p}`).join(' '), size: 'xs', color: '#b8892b', wrap: true },
+    ],
+  });
+}
+
+/** 相性結果（または任意の本文）を友だちにシェアする。LINE外ではWeb Share APIかクリップボードにフォールバック。 */
+export async function shareCompat({ nameA, nameB, score, typeA, typeB, altText: customAlt, contents }) {
   const link = permanentLink();
-  const altText = `${nameA}×${nameB}の紫微斗数相性は${score}点でした`;
+  const altText = customAlt || `${nameA}×${nameB}の紫微斗数相性は${score}点でした`;
   if (ready && liff.isApiAvailable('shareTargetPicker')) {
     const message = {
       type: 'flex',
@@ -41,7 +55,7 @@ export async function shareCompat({ nameA, nameB, score, typeA, typeB }) {
           type: 'box',
           layout: 'vertical',
           spacing: 'md',
-          contents: [
+          contents: contents || [
             { type: 'text', text: '紫微斗数 相性診断', size: 'sm', color: '#8a7cc2', weight: 'bold' },
             { type: 'text', text: `${nameA} × ${nameB}`, size: 'lg', weight: 'bold', wrap: true },
             { type: 'text', text: `${score}点`, size: '3xl', weight: 'bold', color: '#5b3fd1' },

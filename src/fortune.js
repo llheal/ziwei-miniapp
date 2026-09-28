@@ -64,7 +64,7 @@ export function mutagenLandings(chart, stem) {
   return (MUTAGEN_TABLE[stem] || []).map((star, i) => ({ kind: MUTAGEN_KINDS[i], star, index: starPalaceIndex(chart, star) }));
 }
 
-function zoneScore(chart, idx, landings = []) {
+export function zoneScore(chart, idx, landings = []) {
   const byIndex = new Map(chart.palaces.map((p) => [p.index, p]));
   let total = 0;
   for (const [offset, w] of ZONE) {
@@ -128,6 +128,37 @@ export function yearlyFortune(chart, year, decades = decadalFortunes(chart)) {
     year, age, stem, branch, palace: palaceLabel(p), theme: themeOf(p), stars: starsOf(p), score, ...scoreLabel(score),
     advice, mutagens, helpers, decade,
   };
+}
+
+const MONTH_TIPS = {
+  top: '勢いに乗れる月。やりたかったことに思い切って挑戦しましょう。',
+  up: '追い風の月。人との約束や新しい計画を積極的に進めると◎。',
+  mid: '安定の月。日々の習慣を丁寧に続けることで運気が育ちます。',
+  low: '充電の月。休息と準備を大切にすると、次の月に弾みがつきます。',
+};
+
+/** 今年の流月（1〜12月ごろの運勢）。月の区切りは旧暦に基づくため目安。 */
+export function monthlyFortunes(chart, year) {
+  const yearScore = yearlyFortune(chart, year).score;
+  return Array.from({ length: 12 }, (_, m) => {
+    const h = chart.astrolabe.horoscope(new Date(year, m, 15));
+    const p = chart.palaces.find((x) => x.index === h.monthly.index);
+    const own = zoneScore(chart, h.monthly.index, mutagenLandings(chart, h.monthly.heavenlyStem));
+    const score = Math.round(own * 0.6 + yearScore * 0.4);
+    const s = scoreLabel(score);
+    return { month: m + 1, score, ...s, palace: palaceLabel(p), theme: themeOf(p), tip: MONTH_TIPS[s.tone] };
+  });
+}
+
+/** 今日の運勢（流日） */
+export function dailyFortune(chart, date = new Date()) {
+  const h = chart.astrolabe.horoscope(date);
+  const p = chart.palaces.find((x) => x.index === h.daily.index);
+  const own = zoneScore(chart, h.daily.index, mutagenLandings(chart, h.daily.heavenlyStem));
+  const monthIdx = h.monthly.index;
+  const month = zoneScore(chart, monthIdx, mutagenLandings(chart, h.monthly.heavenlyStem));
+  const score = Math.round(own * 0.6 + month * 0.4);
+  return { score, ...scoreLabel(score), stem: h.daily.heavenlyStem, branch: h.daily.earthlyBranch, palace: palaceLabel(p), theme: themeOf(p) };
 }
 
 export function yearlyFortunes(chart, fromYear, count) {

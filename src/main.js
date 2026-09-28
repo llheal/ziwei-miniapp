@@ -3,10 +3,11 @@ import { buildChart, TIME_OPTIONS, UNKNOWN_TIME_INDEX } from './chart.js';
 import { freeSummary, fullReport, palaceDetails } from './readings.js';
 import { ELEMENT_CLASS } from './star-texts.js';
 import { lifeOverview } from './patterns.js';
-import { decadalFortunes, yearlyFortunes } from './fortune.js';
+import { decadalFortunes, yearlyFortunes, monthlyFortunes, dailyFortune } from './fortune.js';
 import { lineChart } from './curve.js';
+import { STAR_ICONS, luckProfile, dailyLuck, areaScores, radarChart } from './extras.js';
 import { compatibility } from './compat.js';
-import { initLine, shareCompat, purchaseReport, fetchPrice } from './line.js';
+import { initLine, shareCompat, shareResult, purchaseReport, fetchPrice } from './line.js';
 
 const $ = (id) => document.getElementById(id);
 const DEFAULT_PRICE_LABEL = '980円';
@@ -63,7 +64,9 @@ function renderChart(chart) {
   grid.innerHTML = '';
   for (const p of chart.palaces) {
     const [row, col] = BRANCH_POS[p.branch] || [1, 1];
-    const cell = document.createElement('div');
+    const cell = document.createElement('button');
+    cell.type = 'button';
+    cell.dataset.palace = p.name;
     cell.className = 'palace' + (p.name === '命宮' ? ' is-soul' : '');
     cell.style.gridRow = String(row);
     cell.style.gridColumn = String(col);
@@ -84,7 +87,7 @@ function renderChart(chart) {
 
 function renderSummary(chart) {
   const s = freeSummary(chart);
-  $('summary-stars').textContent = s.stars.length ? s.stars.join('・') : '主星なし（柔軟タイプ）';
+  $('summary-stars').textContent = s.stars.length ? s.stars.map((n) => `${STAR_ICONS[n] || ''} ${n}`).join('・') : '主星なし（柔軟タイプ）';
   $('summary-keywords').textContent = s.keywords;
   $('summary-text').textContent = s.text;
   const sections = fullReport(chart);
@@ -95,6 +98,37 @@ function renderSummary(chart) {
 
 const OPEN_PALACES = ['命宮', '夫妻', '官祿', '財帛'];
 const list = (items, cls) => (items.length ? `<ul class="${cls}">${items.map((m) => `<li>${m}</li>`).join('')}</ul>` : '');
+
+const starLabel = (s) => `${STAR_ICONS[s.name] || ''}${s.name}${s.brightness ? `<small>${s.brightness}</small>` : ''}`;
+
+function palaceHead(p) {
+  return `
+    <span class="pd-name">${p.name}${p.isBody ? '<em>身宮</em>' : ''}</span>
+    <span class="pd-theme">${p.theme}</span>
+    <span class="pd-stars">${p.stars.map(starLabel).join('・') || '主星なし'}${p.borrowed ? '<small>（対宮の星を借りて読みます）</small>' : ''}</span>`;
+}
+
+function palaceBody(p) {
+  return `
+    ${p.paragraphs.map((x) => `<p>${x.star ? `<strong>【${x.star}】</strong>` : ''}${x.text}</p>`).join('')}
+    ${list(p.brightNotes, 'bright-notes')}
+    ${list(p.supports.map((s) => `<span class="${s.good ? 'good' : 'tough'}">${s.name}</span>${s.text}`), 'support-list')}
+    ${list(p.mutagens, 'mutagens')}`;
+}
+
+/** 命盤の宮をタップしたときの解説シート */
+function openPalaceSheet(palaceName) {
+  const p = palaceDetails(currentChart).find((x) => x.key === palaceName);
+  if (!p) return;
+  $('sheet-content').innerHTML = `<div class="sheet-head" id="sheet-title">${palaceHead(p)}</div>${palaceBody(p)}`;
+  $('sheet').hidden = false;
+  document.body.classList.add('no-scroll');
+}
+
+function closeSheet() {
+  $('sheet').hidden = true;
+  document.body.classList.remove('no-scroll');
+}
 
 function renderReport(chart) {
   const body = chart.body.name === '命宮' ? '命宮（命身同宮）' : `${chart.body.name}宮`;
@@ -109,15 +143,8 @@ function renderReport(chart) {
     </section>`;
   const palaces = palaceDetails(chart).map((p) => `
     <details class="palace-detail" ${OPEN_PALACES.includes(p.key) ? 'open' : ''}>
-      <summary>
-        <span class="pd-name">${p.name}${p.isBody ? '<em>身宮</em>' : ''}</span>
-        <span class="pd-theme">${p.theme}</span>
-        <span class="pd-stars">${p.stars.map((s) => `${s.name}${s.brightness ? `<small>${s.brightness}</small>` : ''}`).join('・') || '主星なし'}${p.borrowed ? '<small>（対宮の星を借りて読みます）</small>' : ''}</span>
-      </summary>
-      ${p.paragraphs.map((x) => `<p>${x.star ? `<strong>【${x.star}】</strong>` : ''}${x.text}</p>`).join('')}
-      ${list(p.brightNotes, 'bright-notes')}
-      ${list(p.supports.map((s) => `<span class="${s.good ? 'good' : 'tough'}">${s.name}</span>${s.text}`), 'support-list')}
-      ${list(p.mutagens, 'mutagens')}
+      <summary>${palaceHead(p)}</summary>
+      ${palaceBody(p)}
     </details>`).join('');
   $('report-body').innerHTML = `${profile}
     <section class="report-section">
@@ -139,6 +166,63 @@ function renderLife(chart) {
   const current = life.decades.findIndex((d) => age >= d.start && age <= d.end);
   const peak = life.decades.indexOf(life.peak);
   $('life-curve-mini').innerHTML = lineChart(points, { current, peak, id: 'mini' }) + '<p class="curve-caption">人生の運勢曲線（横軸は各大限の開始年齢・★は人生の飛躍期）</p>';
+
+  const areas = areaScores(chart);
+  const sorted = [...areas].sort((a, b) => b.score - a.score);
+  $('radar').innerHTML = radarChart(areas);
+  $('radar-text').innerHTML = `あなたがもっとも力を発揮しやすいのは<strong>「${sorted[0].label}」</strong>、次いで<strong>「${sorted[1].label}」</strong>。
+    「${sorted[sorted.length - 1].label}」は、意識して時間をかけるほど伸びていく分野です。`;
+
+  const luck = luckProfile(chart);
+  $('luck-grid').innerHTML = luckItems([
+    ['ラッキーカラー', `<i class="swatch" style="background:${luck.colorHex}"></i>${luck.color}`],
+    ['サブカラー', `<i class="swatch" style="background:${luck.subColorHex}"></i>${luck.subColor}`],
+    ['ラッキー方位', luck.direction],
+    ['ラッキーナンバー', luck.numbers.join('・')],
+    ['開運アイテム', luck.item],
+    ['開運スポット', luck.spot],
+  ]);
+  $('luck-note').textContent = `${chart.fiveElementsClass}のあなたを後押しするのは「${luck.element}」の気。迷ったときは、これらを身の回りに取り入れてみましょう。`;
+  lastLife = life;
+}
+
+const luckItems = (rows) => rows.map(([k, v]) => `<div class="luck-item"><span>${k}</span><strong>${v}</strong></div>`).join('');
+let lastLife = null;
+
+function renderToday(chart) {
+  const today = new Date();
+  const d = dailyFortune(chart, today);
+  const luck = dailyLuck(chart, d.stem, today);
+  $('today-label').textContent = `${today.getMonth() + 1}月${today.getDate()}日（${d.stem}${d.branch}日）の運勢`;
+  const DAY = {
+    top: ['絶好調の日', 'チャンスをつかみやすい一日。気になっていたことに思い切って動いてみましょう。'],
+    up: ['追い風の日', '物事がスムーズに進みやすい一日。人との約束や相談ごとに向いています。'],
+    mid: ['安定の日', '落ち着いて過ごせる一日。いつもの習慣を丁寧にこなすと運気が整います。'],
+    low: ['充電の日', '無理をせず、休息や準備にあてると吉。明日への力がたまります。'],
+  }[d.tone];
+  $('today-title').innerHTML = `<span class="score-badge ${d.tone}">${d.score}</span>今日は${DAY[0]}`;
+  $('today-text').innerHTML = `${DAY[1]}今日は<strong>${d.palace}</strong>（${d.theme}）に関わることが運を動かすカギになります。`;
+  $('today-luck').innerHTML = luckItems([
+    ['ラッキーカラー', `<i class="swatch" style="background:${luck.colorHex}"></i>${luck.color}`],
+    ['ラッキーアイテム', luck.item],
+    ['ラッキーナンバー', String(luck.number)],
+    ['吉方位', luck.direction],
+  ]);
+}
+
+function renderMonths(chart) {
+  const year = new Date().getFullYear();
+  const nowMonth = new Date().getMonth();
+  const months = monthlyFortunes(chart, year);
+  $('month-title').textContent = `${year}年の流月（月ごとの運勢）`;
+  $('month-curve').innerHTML = lineChart(months.map((m) => ({ label: `${m.month}`, score: m.score })), { current: nowMonth, id: 'month' });
+  $('month-grid').innerHTML = months.map((m, i) => `
+    <div class="month-cell ${m.tone} ${i === nowMonth ? 'is-now' : ''}">
+      <span class="mc-month">${m.month}月</span>
+      <span class="mc-score">${m.score}</span>
+      <span class="mc-label">${m.label}</span>
+      <span class="mc-theme">${m.palace}</span>
+    </div>`).join('') + `<p class="advice month-tip">今月のひとこと：${months[nowMonth].tip}</p>`;
 }
 
 function renderFortune(chart) {
@@ -189,6 +273,9 @@ function showResult(input) {
   renderSummary(currentChart);
   renderLife(currentChart);
   renderFortune(currentChart);
+  renderToday(currentChart);
+  renderMonths(currentChart);
+  $('share-result-note').textContent = '';
   document.querySelectorAll('#tabs [data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === 'chart')));
   document.querySelectorAll('.tab-panel').forEach((p) => { p.hidden = p.dataset.panel !== 'chart'; });
   const unlocked = store.get('unlocked') || [];
@@ -200,6 +287,7 @@ function showResult(input) {
     $('report-card').hidden = true;
   }
   $('form-card').hidden = true;
+  $('intro-card').hidden = true;
   $('result').hidden = false;
   store.set('lastInput', input);
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -247,15 +335,27 @@ function onCompat(e) {
   $('share-note').textContent = '';
 }
 
+const SHARE_NOTES = {
+  sent: '送信しました！',
+  cancelled: '',
+  copied: 'メッセージをコピーしました。LINEに貼り付けて送ってください。',
+  failed: 'シェアできませんでした。',
+};
+
 async function onShare() {
   if (!lastCompat) return;
   const res = await shareCompat(lastCompat);
-  $('share-note').textContent = {
-    sent: '送信しました！',
-    cancelled: '',
-    copied: 'メッセージをコピーしました。LINEに貼り付けて送ってください。',
-    failed: 'シェアできませんでした。',
-  }[res] || '';
+  $('share-note').textContent = SHARE_NOTES[res] || '';
+}
+
+async function onShareResult() {
+  if (!lastLife || !currentChart) return;
+  const res = await shareResult({
+    title: lastLife.title,
+    patterns: lastLife.patterns.map((p) => p.name),
+    stars: currentChart.soul.majorStars.map((s) => s.name).join('・'),
+  });
+  $('share-result-note').textContent = SHARE_NOTES[res] || '';
 }
 
 async function main() {
@@ -281,9 +381,21 @@ async function main() {
   document.querySelectorAll('[data-goto]').forEach((b) => b.addEventListener('click', () => selectTab(b.dataset.goto)));
   $('compat-form').addEventListener('submit', onCompat);
   $('share-btn').addEventListener('click', onShare);
+  $('share-result-btn').addEventListener('click', onShareResult);
+  $('chart-grid').addEventListener('click', (e) => {
+    const cell = e.target.closest('[data-palace]');
+    if (cell) openPalaceSheet(cell.dataset.palace);
+  });
+  $('sheet').addEventListener('click', (e) => {
+    if (e.target.closest('[data-close]')) closeSheet();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !$('sheet').hidden) closeSheet();
+  });
   $('restart-btn').addEventListener('click', () => {
     $('result').hidden = true;
     $('form-card').hidden = false;
+    $('intro-card').hidden = false;
   });
 
   const line = await initLine();

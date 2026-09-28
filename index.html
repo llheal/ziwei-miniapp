@@ -42,6 +42,17 @@
         </form>
       </section>
 
+      <section class="card intro-card" id="intro-card">
+        <h2>紫微斗数（しびとすう）とは</h2>
+        <p>紫微斗数は、千年以上前の中国・宋の時代に生まれたと伝えられる東洋の占術です。生年月日と生まれた時刻から「命盤」をつくり、十二の宮に100以上の星を配置して、性格や才能、人生の流れを読み解きます。その精密さから「東洋占星術の最高峰」とも呼ばれています。</p>
+        <ul class="feature-list">
+          <li><span>🔮</span><div><strong>人生の総合鑑定</strong>あなたの人生タイプと、命盤に表れる「格局」を判定</div></li>
+          <li><span>📜</span><div><strong>性格・十二宮の詳細解説</strong>恋愛・仕事・金運など12のテーマを星ごとに解説</div></li>
+          <li><span>📈</span><div><strong>運勢グラフ</strong>今日・今月・今年から人生全体まで、運気の流れを可視化</div></li>
+          <li><span>💞</span><div><strong>相性診断</strong>気になる人との相性を占って、LINEで送れます</div></li>
+        </ul>
+      </section>
+
       <section id="result" hidden>
         <nav class="tabs" id="tabs" role="tablist">
           <button type="button" role="tab" data-tab="chart" aria-selected="true">命盤・総合</button>
@@ -58,13 +69,28 @@
           <div id="life-curve-mini"></div>
           <div class="life-text" id="life-text"></div>
           <button type="button" class="btn-secondary" data-goto="fortune">運勢の流れをくわしく見る</button>
+          <button type="button" class="btn-share" id="share-result-btn">この結果を友だちにシェア</button>
+          <p class="small center" id="share-result-note"></p>
+        </div>
+
+        <div class="card">
+          <h2>運勢バランス</h2>
+          <p class="hint">人生の6つの分野について、生まれ持った星の力をグラフにしました。</p>
+          <div id="radar"></div>
+          <p id="radar-text"></p>
+        </div>
+
+        <div class="card luck-card">
+          <h2>あなたの開運アドバイス</h2>
+          <div class="luck-grid" id="luck-grid"></div>
+          <p class="small" id="luck-note"></p>
         </div>
 
         <div class="card">
           <h2>あなたの命盤</h2>
           <div class="basic-info" id="basic-info"></div>
           <div class="chart-grid" id="chart-grid"></div>
-          <p class="hint">★ 宮の中の星があなたの運命を形づくります。「命宮」があなたの本質を表します。</p>
+          <p class="hint">★ 宮をタップすると、その宮の意味と星の解説が表示されます。「命宮」があなたの本質を表します。</p>
         </div>
 
         <div class="card highlight">
@@ -103,10 +129,22 @@
         </div>
 
         <div class="tab-panel" data-panel="fortune" hidden>
+        <div class="card today-card">
+          <p class="label" id="today-label"></p>
+          <h2 id="today-title"></h2>
+          <p id="today-text"></p>
+          <div class="luck-grid" id="today-luck"></div>
+        </div>
         <div class="card">
           <p class="label" id="year-now-label"></p>
           <h2 id="year-now-title"></h2>
           <div id="year-now"></div>
+        </div>
+        <div class="card">
+          <h2 id="month-title">今年の流月（月ごとの運勢）</h2>
+          <p class="hint">紫微斗数の月は旧暦で区切るため、各月はおおよその目安です。</p>
+          <div id="month-curve"></div>
+          <div class="month-grid" id="month-grid"></div>
         </div>
         <div class="card">
           <h2>これから12年の運勢グラフ</h2>
@@ -160,6 +198,14 @@
       <p>本サービスは紫微斗数の考え方にもとづくエンターテインメントです。人生の重要な判断は、ご自身の意思と専門家への相談をもとに行ってください。</p>
       <p><a href="./privacy.html">プライバシーポリシー</a> ・ <a href="./tokushoho.html">特定商取引法に基づく表記</a></p>
     </footer>
+
+    <div class="sheet" id="sheet" hidden>
+      <div class="sheet-backdrop" data-close></div>
+      <div class="sheet-body" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+        <button type="button" class="sheet-close" data-close aria-label="閉じる">×</button>
+        <div id="sheet-content"></div>
+      </div>
+    </div>
 
     <script type="module" src="/src/main.js"></script>
   </body>
