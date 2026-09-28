@@ -300,3 +300,9 @@ body.no-scroll { overflow: hidden; }
 .compat-tips li { padding: 3px 0; }
 .chart-center .center-yinyang { margin-top: 4px; padding: 1px 8px; border-radius: 999px; background: #f3d48a; color: #3a2585; font-weight: 700; font-size: 11px; }
 .muted { color: var(--muted); font-size: 12px; }
+
+/* 生年月日（年・月・日のプルダウン） */
+.date-select { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.date-select .ds-year { grid-column: 1 / -1; }
+.date-select select { padding: 12px 8px; }
+.date-select .ds-year { border: 2px solid var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 16px; }

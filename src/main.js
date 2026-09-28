@@ -31,10 +31,41 @@ function fillTimeSelect(select) {
   select.value = 'unknown';
 }
 
+// 和暦（元号の切り替わる年は両方を表示）
+function wareki(y) {
+  if (y >= 2019) return y === 2019 ? '平成31/令和元' : `令和${y - 2018}`;
+  if (y >= 1989) return y === 1989 ? '昭和64/平成元' : `平成${y - 1988}`;
+  if (y >= 1926) return y === 1926 ? '大正15/昭和元' : `昭和${y - 1925}`;
+  return `大正${y - 1911}`;
+}
+
+/** 年・月・日のプルダウンを用意する（年は新しい順、和暦つき） */
+function setupDateSelect(box) {
+  const [year, month, day] = ['year', 'month', 'day'].map((n) => box.querySelector(`[name="${n}"]`));
+  const thisYear = new Date().getFullYear();
+  year.add(new Option('年を選択', ''));
+  for (let y = thisYear; y >= 1920; y--) year.add(new Option(`${y}年（${wareki(y)}）`, String(y)));
+  month.add(new Option('月', ''));
+  for (let m = 1; m <= 12; m++) month.add(new Option(`${m}月`, String(m)));
+  const fillDays = () => {
+    const keep = day.value;
+    const last = new Date(Number(year.value) || 2000, Number(month.value) || 1, 0).getDate();
+    day.length = 0;
+    day.add(new Option('日', ''));
+    for (let d = 1; d <= last; d++) day.add(new Option(`${d}日`, String(d)));
+    if (keep && Number(keep) <= last) day.value = keep;
+  };
+  year.addEventListener('change', fillDays);
+  month.addEventListener('change', fillDays);
+  fillDays();
+}
+
 function readBirth(form) {
   const data = new FormData(form);
-  const date = data.get('date');
-  if (!date) return { error: '生年月日を入力してください。' };
+  const [y, m, d] = ['year', 'month', 'day'].map((k) => data.get(k));
+  if (!y || !m || !d) return { error: '生年月日（年・月・日）を選択してください。' };
+  const date = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+  if (new Date(`${date}T00:00:00`) > new Date()) return { error: '未来の日付は選べません。' };
   const timeRaw = data.get('time');
   const timeIndex = timeRaw === 'unknown' ? UNKNOWN_TIME_INDEX : Number(timeRaw);
   return { date, timeIndex, timeUnknown: timeRaw === 'unknown', gender: data.get('gender') || '女' };
@@ -394,6 +425,7 @@ async function ensureLatestVersion() {
 
 async function main() {
   ensureLatestVersion();
+  document.querySelectorAll('[data-date-select]').forEach(setupDateSelect);
   fillTimeSelect(document.querySelector('#birth-form select[name="time"]'));
   fillTimeSelect(document.querySelector('#compat-form select[name="time"]'));
 
@@ -435,8 +467,7 @@ async function main() {
 
   const line = await initLine();
   if (!IAP_ENABLED) {
-    const last = store.get('lastInput');
-    if (last && last.date) showResult(last);
+    restoreLast();
     return;
   }
   const price = await fetchPrice();
@@ -445,8 +476,28 @@ async function main() {
     $('buy-note').textContent = '開発モード：ボタンを押すとテストとして解放されます。';
   }
 
+  restoreLast();
+}
+
+/** 前回の入力があれば、フォームに戻して結果を表示する */
+function restoreLast() {
   const last = store.get('lastInput');
-  if (last && last.date) showResult(last);
+  if (!last || !last.date) return;
+  prefillBirth(last);
+  showResult(last);
+}
+
+/** 前回の入力内容をフォームに戻す */
+function prefillBirth(input) {
+  const form = $('birth-form');
+  const [y, m, d] = input.date.split('-').map(Number);
+  form.year.value = String(y);
+  form.month.value = String(m);
+  form.year.dispatchEvent(new Event('change'));
+  form.day.value = String(d);
+  form.time.value = input.timeUnknown ? 'unknown' : String(input.timeIndex);
+  const g = form.querySelector(`input[name="gender"][value="${input.gender}"]`);
+  if (g) g.checked = true;
 }
 
 main();

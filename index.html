@@ -22,10 +22,15 @@
       <section class="card" id="form-card">
         <h2>あなたの生まれを教えてください</h2>
         <form id="birth-form" novalidate>
-          <label class="field">
-            <span>生年月日（西暦）</span>
-            <input type="date" name="date" required min="1920-01-01" max="2025-12-31" />
-          </label>
+          <div class="field">
+            <span>生年月日</span>
+            <div class="date-select" data-date-select>
+              <select name="year" class="ds-year" required aria-label="生まれた年"></select>
+              <select name="month" required aria-label="生まれた月"></select>
+              <select name="day" required aria-label="生まれた日"></select>
+            </div>
+            <small>「年」をタップすると、一覧から生まれた年をすぐに選べます。</small>
+          </div>
           <label class="field">
             <span>生まれた時刻</span>
             <select name="time" required></select>
@@ -168,7 +173,14 @@
           <form id="compat-form" novalidate>
             <label class="field"><span>あなたの呼び名</span><input type="text" name="nameA" maxlength="10" placeholder="例：さくら" /></label>
             <label class="field"><span>相手の呼び名</span><input type="text" name="nameB" maxlength="10" placeholder="例：たろう" /></label>
-            <label class="field"><span>相手の生年月日</span><input type="date" name="date" required min="1920-01-01" max="2025-12-31" /></label>
+            <div class="field">
+              <span>相手の生年月日</span>
+              <div class="date-select" data-date-select>
+                <select name="year" class="ds-year" required aria-label="相手の生まれた年"></select>
+                <select name="month" required aria-label="相手の生まれた月"></select>
+                <select name="day" required aria-label="相手の生まれた日"></select>
+              </div>
+            </div>
             <label class="field"><span>相手の生まれた時刻</span><select name="time" required></select></label>
             <fieldset class="field">
               <legend>相手の性別</legend>
