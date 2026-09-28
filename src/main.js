@@ -372,7 +372,28 @@ async function onShareResult() {
   $('share-result-note').textContent = SHARE_NOTES[res] || '';
 }
 
+/**
+ * LINEのWebViewは古いページをキャッシュしやすいため、起動時に最新のページを取得し、
+ * 読み込んでいるスクリプトと異なれば一度だけ再読み込みする。
+ */
+async function ensureLatestVersion() {
+  if (import.meta.env.DEV) return;
+  try {
+    const current = new URL(import.meta.url).pathname.split('/').pop();
+    const html = await (await fetch(`${location.pathname}?v=${Date.now()}`, { cache: 'no-store' })).text();
+    const latest = (html.match(/assets\/(main-[^"']+\.js)/) || [])[1];
+    const key = `reloaded:${latest}`;
+    if (latest && latest !== current && !sessionStorage.getItem(key)) {
+      sessionStorage.setItem(key, '1');
+      const url = new URL(location.href);
+      url.searchParams.set('v', Date.now().toString());
+      location.replace(url.toString());
+    }
+  } catch { /* 確認できなくても現在の版で動作を続ける */ }
+}
+
 async function main() {
+  ensureLatestVersion();
   fillTimeSelect(document.querySelector('#birth-form select[name="time"]'));
   fillTimeSelect(document.querySelector('#compat-form select[name="time"]'));
 
