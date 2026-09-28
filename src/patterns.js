@@ -1,7 +1,7 @@
 // 紫微斗数の格局判定と「人生の総合鑑定」。命宮と三方四正（命宮・財帛・官祿・遷移）の星の組み合わせから判定する。
 // 方針：吉格を中心に紹介し、不安をあおる凶格の表現は用いない。
 import { STARS, PALACE_THEMES } from './readings.js';
-import { ELEMENT_CLASS, YIN_YANG } from './star-texts.js';
+import { ELEMENT_CLASS } from './star-texts.js';
 import { decadalFortunes } from './fortune.js';
 import { TYPES, typeOf } from './compat.js';
 
@@ -133,7 +133,7 @@ export function lifeOverview(chart) {
     `命盤には${patterns.map((p) => `「${p.name}」`).join('')}が見られます。${patterns[0].text}`,
     `運気の流れを見ると、${peak.start}〜${peak.end}歳ごろ（数え年）が人生の大きな飛躍期。${peak.theme}が活躍の舞台になります。${low !== peak ? `${low.start}〜${low.end}歳ごろは力をためる準備期で、ここで整えた土台が次の飛躍を支えます。` : ''}`,
     `${chart.fiveElementsClass}の人は、${ELEMENT_CLASS[chart.element] || ''}${bodyText}`,
-    `生まれ年の陰陽と性別から見ると、あなたは「${chart.yinYang.label}」。${YIN_YANG[chart.yinYang.label]}命宮との関係は「${chart.yinYang.harmony ? '陰陽順理' : '陰陽反背'}」で、${chart.yinYang.harmony ? '生まれ持った気質を素直に生かすほど運が開けます。' : '経験を重ねるほど実力が磨かれていく、後半に強い人生です。'}`,
+    `生まれ年の陰陽と性別から見ると、あなたは「${chart.yinYang.label}」で、大限は${chart.yinYang.forward ? '順行' : '逆行'}します。命宮との関係は「${chart.yinYang.harmony ? '陰陽順理' : '陰陽反背'}」で、${chart.yinYang.harmony ? '生まれ持った気質を素直に生かすほど運が開けます。' : '経験を重ねるほど実力が磨かれていく、後半に強い人生です。'}`,
   ];
   return { title, patterns, paragraphs, peak, decades };
 }

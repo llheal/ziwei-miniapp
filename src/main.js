@@ -1,7 +1,7 @@
 import './style.css';
 import { buildChart, TIME_OPTIONS, UNKNOWN_TIME_INDEX } from './chart.js';
 import { freeSummary, fullReport, palaceDetails } from './readings.js';
-import { ELEMENT_CLASS, YIN_YANG, YIN_YANG_DIRECTION, YIN_YANG_HARMONY } from './star-texts.js';
+import { ELEMENT_CLASS, YIN_YANG, YIN_YANG_DIRECTION, YIN_YANG_HARMONY, YIN_YANG_NOTE } from './star-texts.js';
 import { lifeOverview } from './patterns.js';
 import { decadalFortunes, yearlyFortunes, monthlyFortunes, dailyFortune } from './fortune.js';
 import { lineChart } from './curve.js';
@@ -84,7 +84,7 @@ function renderChart(chart) {
   }
   const center = document.createElement('div');
   center.className = 'chart-center';
-  center.innerHTML = `<p>${chart.solarDate}</p><p>${chart.time}（${chart.timeRange}）</p><p>${chart.zodiac}年・${chart.sign}</p>`;
+  center.innerHTML = `<p>${chart.solarDate}</p><p>${chart.time}（${chart.timeRange}）</p><p>${chart.zodiac}年・${chart.sign}</p><p class="center-yinyang">${chart.yinYang.label}・大限${chart.yinYang.forward ? '順行' : '逆行'}</p>`;
   grid.appendChild(center);
 }
 
@@ -142,7 +142,7 @@ function renderReport(chart) {
         <div><dt>五行局</dt><dd><strong>${chart.fiveElementsClass}</strong>　${ELEMENT_CLASS[chart.element] || ''}</dd></div>
         <div><dt>身宮</dt><dd><strong>${body}</strong>　人生の後半にかけて重みを増すテーマを表します。</dd></div>
         <div><dt>命主 / 身主</dt><dd><strong>${chart.soulStar} / ${chart.bodyStar}</strong>　生まれ持った運命の守り星と、人生を通じて育てていく星です。</dd></div>
-        <div><dt>陰陽</dt><dd><strong>${chart.yinYang.label}</strong>　${YIN_YANG[chart.yinYang.label]}${YIN_YANG_DIRECTION[chart.yinYang.forward]}</dd></div>
+        <div><dt>陰陽</dt><dd><strong>${chart.yinYang.label}</strong>　${YIN_YANG[chart.yinYang.label]}${YIN_YANG_DIRECTION[chart.yinYang.forward]}<br><small class="muted">${YIN_YANG_NOTE}</small></dd></div>
         <div><dt>陰陽の配置</dt><dd><strong>${chart.yinYang.harmony ? '陰陽順理' : '陰陽反背'}</strong>　${YIN_YANG_HARMONY[chart.yinYang.harmony]}</dd></div>
       </dl>
     </section>`;
