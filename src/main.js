@@ -6,6 +6,8 @@ import { initLine, shareCompat, purchaseReport, fetchPrice } from './line.js';
 
 const $ = (id) => document.getElementById(id);
 const DEFAULT_PRICE_LABEL = '980円';
+// アプリ内課金の利用審査が通るまでは無料機能のみで公開する（VITE_IAP_ENABLED=true で有料レポートを表示）
+const IAP_ENABLED = import.meta.env.VITE_IAP_ENABLED === 'true' || import.meta.env.DEV;
 
 const store = {
   get(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } },
@@ -108,7 +110,7 @@ function showResult(input) {
   if (unlocked.includes(chartKey(input))) {
     renderReport(currentChart);
   } else {
-    $('premium-card').hidden = false;
+    $('premium-card').hidden = !IAP_ENABLED;
     $('report-card').hidden = true;
   }
   $('form-card').hidden = true;
@@ -194,6 +196,11 @@ async function main() {
   });
 
   const line = await initLine();
+  if (!IAP_ENABLED) {
+    const last = store.get('lastInput');
+    if (last && last.date) showResult(last);
+    return;
+  }
   const price = await fetchPrice();
   $('buy-btn').textContent = `詳細レポートを見る（${price ? `${price.price}${price.currency === 'JPY' ? '円' : ` ${price.currency}`}` : DEFAULT_PRICE_LABEL}）`;
   if (!line.enabled && import.meta.env.DEV) {
