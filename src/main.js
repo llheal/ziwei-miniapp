@@ -10,6 +10,7 @@ import { compatibility } from './compat.js';
 import { initLine, shareCompat, shareResult, purchaseReport, fetchPrice } from './line.js';
 
 const $ = (id) => document.getElementById(id);
+const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const DEFAULT_PRICE_LABEL = '980円';
 // アプリ内課金の利用審査が通るまでは無料機能のみで公開する（VITE_IAP_ENABLED=true で有料レポートを表示）
 const IAP_ENABLED = import.meta.env.VITE_IAP_ENABLED === 'true' || import.meta.env.DEV;
@@ -324,13 +325,22 @@ function onCompat(e) {
   const data = new FormData(form);
   const nameA = (data.get('nameA') || '').trim() || 'あなた';
   const nameB = (data.get('nameB') || '').trim() || 'お相手';
-  const r = compatibility(currentChart, buildChart(partner));
-  lastCompat = { nameA, nameB, ...r };
+  // 呼び名は利用者の入力なので、HTMLに埋め込む前にエスケープする
+  const r = compatibility(currentChart, buildChart(partner), escapeHtml(nameA), escapeHtml(nameB));
+  lastCompat = { nameA, nameB, score: r.score, typeA: r.typeA, typeB: r.typeB };
   $('compat-names').textContent = `${nameA} × ${nameB}`;
   $('compat-score').textContent = String(r.score);
+  $('compat-level').textContent = `${r.level}｜${r.pairName}`;
   $('compat-types').textContent = `${r.typeA} × ${r.typeB}`;
-  $('compat-text').textContent = r.text;
-  $('compat-element').textContent = r.elementText;
+  $('compat-bars').innerHTML = r.subScores.map((s) => `
+    <div class="cb-row"><span class="cb-label">${s.label}</span><span class="fr-bar"><i style="width:${s.score}%"></i></span><span class="cb-score">${s.score}</span></div>`).join('');
+  $('compat-sections').innerHTML = r.sections.map((s) => `
+    <section class="compat-section">
+      <h3>${s.title}</h3>
+      ${s.body ? `<p>${s.body}</p>` : ''}
+      ${s.list?.length ? `<ul class="mutagen-year">${s.list.map((l) => `<li>${l}</li>`).join('')}</ul>` : ''}
+    </section>`).join('');
+  $('compat-tips').innerHTML = `<h3>関係を深める3つのヒント</h3><ol>${r.tips.map((t) => `<li>${t}</li>`).join('')}</ol>`;
   $('compat-result').hidden = false;
   $('share-note').textContent = '';
 }
